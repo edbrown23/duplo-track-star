@@ -1,8 +1,8 @@
 # DUPLO Track Studio
 
 A tiny, dependency-free static web app for planning LEGO® DUPLO® train track
-layouts in the browser. Snap together **straights**, **left/right curves** and
-**stations**, then see whether your loop actually closes.
+layouts in the browser. Snap together **straights**, **left/right curves**,
+**stations** and **bridges**, then see whether your loop actually closes.
 
 > Not affiliated with the LEGO Group. "LEGO" and "DUPLO" are trademarks of the
 > LEGO Group.
@@ -32,8 +32,13 @@ It's a plain static site — no build step.
 5. **Save / Load** export and import a layout as a JSON file. Your work is also
    auto-saved to the browser between visits.
 
-Keyboard: `1`–`4` place pieces · `U` / `Ctrl/Cmd+Z` undo · `Delete` remove
+Keyboard: `1`–`5` place pieces · `U` / `Ctrl/Cmd+Z` undo · `Delete` remove
 selected · `F` fit · `Esc` deselect.
+
+The **bridge** is eight straights long: it ramps up at both ends to a raised
+deck in the middle and back down again, so another track can run underneath the
+open middle span. Its two ends sit flat on the ground, so it connects to a
+straight run like any other piece.
 
 When two open ends meet (same spot, opposite directions) they snap together
 automatically, so closed loops "just work" — twelve curves make a full circle.
@@ -51,6 +56,5 @@ automatically, so closed loops "just work" — twelve curves make a full circle.
 
 ## Roadmap
 
-- Bridge / ramp pieces (raised track) — deliberately left for later.
 - Collision / overlap warnings.
 - Switches and crossings.

@@ -28,7 +28,13 @@
     STATION_LEN: 100, // length of a station piece (same footprint as straight)
     CURVE_RADIUS: 120, // centreline radius of a curve
     CURVE_ANGLE: Math.PI / 6, // 30° — twelve curves make a full circle
+    // A bridge spans the length of eight straights. It ramps up over RAMP
+    // units at each end, holds a raised LIFT-high deck across the middle, then
+    // ramps back down — so a train can pass underneath the open middle span.
+    BRIDGE_RAMP: 180,
+    BRIDGE_LIFT: 64,
   };
+  CFG.BRIDGE_LEN = 8 * CFG.STRAIGHT_LEN; // 800 — eight straights end to end
   Duplo.CFG = CFG;
 
   // ---- centreline samplers -------------------------------------------------
@@ -80,10 +86,20 @@
       samples: () => straightSamples(CFG.STATION_LEN),
       station: true,
     },
+    bridge: {
+      id: "bridge",
+      label: "Bridge",
+      // The centreline (and therefore both connectors) stays flat on the
+      // ground at each end — a bridge plugs into a straight run like anything
+      // else. The rise and fall of the deck is a purely visual flourish added
+      // at render time; see the `bridge` flag.
+      samples: () => straightSamples(CFG.BRIDGE_LEN),
+      bridge: true,
+    },
   };
 
   // The order pieces appear in the palette.
-  Duplo.PIECE_ORDER = ["straight", "curve-left", "curve-right", "station"];
+  Duplo.PIECE_ORDER = ["straight", "curve-left", "curve-right", "station", "bridge"];
 
   // ---- connectors ----------------------------------------------------------
 
