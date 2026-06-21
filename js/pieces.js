@@ -27,7 +27,7 @@
     STRAIGHT_LEN: 100, // length of a straight piece
     STATION_LEN: 100, // length of a station piece (same footprint as straight)
     CURVE_RADIUS: 120, // centreline radius of a curve
-    CURVE_ANGLE: Math.PI / 4, // 45° — eight curves make a full circle
+    CURVE_ANGLE: Math.PI / 6, // 30° — twelve curves make a full circle
   };
   Duplo.CFG = CFG;
 

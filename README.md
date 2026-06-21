@@ -36,7 +36,7 @@ Keyboard: `1`–`4` place pieces · `U` / `Ctrl/Cmd+Z` undo · `Delete` remove
 selected · `F` fit · `Esc` deselect.
 
 When two open ends meet (same spot, opposite directions) they snap together
-automatically, so closed loops "just work" — eight curves make a full circle.
+automatically, so closed loops "just work" — twelve curves make a full circle.
 
 ## How it works
 
