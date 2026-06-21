@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#1f6feb" />
+    <title>DUPLO Track Studio</title>
+    <meta
+      name="description"
+      content="Plan and try out LEGO DUPLO train track layouts in your browser — snap together straights, curves and stations."
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%231f6feb'/><circle cx='22' cy='42' r='8' fill='%23fff'/><circle cx='42' cy='42' r='8' fill='%23fff'/><rect x='14' y='16' width='36' height='20' rx='4' fill='%23f4c542'/></svg>"
+    />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true"></span>
+        <span class="brand__name">DUPLO Track Studio</span>
+      </div>
+      <div class="toolbar">
+        <button id="btn-undo" class="tool" title="Undo (U)">↶ Undo</button>
+        <button id="btn-delete" class="tool" title="Delete selected piece (Del)">🗑 Delete</button>
+        <span class="tool-sep"></span>
+        <button id="btn-zoom-out" class="tool tool--icon" title="Zoom out">−</button>
+        <button id="btn-zoom-in" class="tool tool--icon" title="Zoom in">+</button>
+        <button id="btn-fit" class="tool" title="Fit layout to screen (F)">⤢ Fit</button>
+        <span class="tool-sep"></span>
+        <button id="btn-export" class="tool" title="Download layout as a file">↧ Save</button>
+        <button id="btn-import" class="tool" title="Load a layout file">↥ Load</button>
+        <button id="btn-clear" class="tool tool--danger" title="Clear the layout">Clear</button>
+        <input id="import-input" type="file" accept="application/json,.json" hidden />
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <h2 class="sidebar__title">Pieces</h2>
+        <div id="palette" class="palette"></div>
+        <div class="sidebar__help">
+          <p><strong>How to build</strong></p>
+          <ol>
+            <li>Pick a piece — it drops onto the highlighted end.</li>
+            <li>Tap any glowing dot to grow from a different end.</li>
+            <li>Tap a piece, then <em>Delete</em> to remove it.</li>
+          </ol>
+          <p class="sidebar__hint">Drag the background to pan · scroll to zoom · keys 1–4 place pieces.</p>
+        </div>
+        <div class="sidebar__count"><span id="count">0 pieces</span></div>
+      </aside>
+
+      <section class="stage">
+        <svg id="board" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M40 0H0V40" fill="none" stroke="#d7e0ea" stroke-width="1" />
+            </pattern>
+          </defs>
+          <rect id="bg" x="-100000" y="-100000" width="200000" height="200000" fill="url(#grid)" />
+          <g id="world">
+            <g id="layer-ghost"></g>
+            <g id="layer-pieces"></g>
+            <g id="layer-connectors"></g>
+          </g>
+        </svg>
+        <div id="empty-hint" class="empty-hint">
+          <div class="empty-hint__card">
+            <div class="empty-hint__icon">🚂</div>
+            <h3>Start your track</h3>
+            <p>Pick a piece from the left to lay down the first section.</p>
+          </div>
+        </div>
+        <div id="toast" class="toast"></div>
+      </section>
+    </main>
+
+    <script src="js/pieces.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
