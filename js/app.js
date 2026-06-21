@@ -193,8 +193,18 @@
 
   function buildPieceVisual(def) {
     const g = el("g");
-    const dense = densify(def.samples(), 7);
+    if (def.bridge) {
+      addBridgeUnderstructure(g);
+      drawTrackBody(g, bridgeDense());
+      return g;
+    }
+    drawTrackBody(g, densify(def.samples(), 7));
+    if (def.station) addStation(g, def);
+    return g;
+  }
 
+  // Draw the bed, sleepers and rails along an (already dense) centreline.
+  function drawTrackBody(g, dense) {
     // track bed: left edge forward, right edge back, closed.
     const left = dense.map((p) => offset(p, CFG.W / 2));
     const right = dense.map((p) => offset(p, -CFG.W / 2)).reverse();
@@ -222,9 +232,65 @@
       g.appendChild(el("path", { d: polyPath(line, false), fill: "none", stroke: "#aeb6c2", "stroke-width": 9, "stroke-linecap": "round", "stroke-linejoin": "round" }));
       g.appendChild(el("path", { d: polyPath(line, false), fill: "none", stroke: "#eef1f6", "stroke-width": 3, "stroke-linecap": "round", "stroke-linejoin": "round" }));
     });
+  }
 
-    if (def.station) addStation(g, def);
-    return g;
+  // ---- bridge geometry & decoration ----------------------------------------
+
+  // Height of the deck above the ground at distance `s` along the bridge. Flat
+  // on the ground at both ends, smoothly ramping up to a level raised span in
+  // the middle. Smoothstep keeps the ramp gradient gentle at top and bottom.
+  function bridgeHeight(s) {
+    const L = CFG.BRIDGE_LEN;
+    const ramp = CFG.BRIDGE_RAMP;
+    const smooth = (u) => u * u * (3 - 2 * u);
+    if (s < ramp) return CFG.BRIDGE_LIFT * smooth(s / ramp);
+    if (s > L - ramp) return CFG.BRIDGE_LIFT * smooth((L - s) / ramp);
+    return CFG.BRIDGE_LIFT;
+  }
+
+  // A dense centreline for the bridge deck: x runs along the piece, y lifts the
+  // deck up (toward the viewer, i.e. -y) by bridgeHeight, and `dir` is taken
+  // from neighbouring points so rails/sleepers bank correctly on the ramps.
+  function bridgeDense() {
+    const L = CFG.BRIDGE_LEN;
+    const n = Math.ceil(L / 6);
+    const pts = [];
+    for (let i = 0; i <= n; i++) {
+      const s = (L * i) / n;
+      pts.push({ s, x: s, y: -bridgeHeight(s) });
+    }
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[Math.max(0, i - 1)];
+      const b = pts[Math.min(pts.length - 1, i + 1)];
+      pts[i].dir = Math.atan2(b.y - a.y, b.x - a.x);
+    }
+    return pts;
+  }
+
+  // The ground-level structure that holds the deck up: a soft shadow under the
+  // raised span plus a trestle of legs at each end of the span. The middle is
+  // deliberately left clear so a track can run underneath it.
+  function addBridgeUnderstructure(g) {
+    const L = CFG.BRIDGE_LEN;
+    const lift = CFG.BRIDGE_LIFT;
+    const half = CFG.W / 2;
+    const spanStart = CFG.BRIDGE_RAMP;
+    const spanEnd = L - CFG.BRIDGE_RAMP;
+    const ground = half; // screen y of the ground line (a flat track's lower edge)
+    const deckBottom = -lift + half; // screen y of the underside of the raised deck
+
+    // soft shadow on the ground beneath the raised span.
+    g.appendChild(
+      el("rect", { x: spanStart - 6, y: ground - 6, width: spanEnd - spanStart + 12, height: 14, rx: 7, fill: "rgba(0,0,0,0.18)" })
+    );
+
+    // a trestle of two legs, plus a footing slab, at each end of the span.
+    [spanStart, spanEnd].forEach((px) => {
+      [-18, 18].forEach((dx) => {
+        g.appendChild(el("rect", { x: px + dx - 6, y: deckBottom, width: 12, height: ground - deckBottom, rx: 3, fill: "#7b8696", stroke: "#5b6472", "stroke-width": 2 }));
+      });
+      g.appendChild(el("rect", { x: px - 28, y: ground - 4, width: 56, height: 10, rx: 4, fill: "#5b6472" }));
+    });
   }
 
   // A cheerful little platform with a red roof on the +y side of the track.
@@ -258,7 +324,12 @@
     layerConnectors.textContent = "";
     layerGhost.textContent = "";
 
-    pieces.forEach((p) => {
+    // Draw bridges last so their raised deck sits visually on top of any track
+    // that crosses underneath the open middle span.
+    const ordered = pieces
+      .slice()
+      .sort((a, b) => (PIECES[a.type].bridge ? 1 : 0) - (PIECES[b.type].bridge ? 1 : 0));
+    ordered.forEach((p) => {
       const g = buildPieceVisual(PIECES[p.type]);
       g.setAttribute("transform", "translate(" + p.t.x + " " + p.t.y + ") rotate(" + deg(p.t.rot) + ")");
       g.setAttribute("class", "piece" + (selectedPiece === p.pid ? " piece--selected" : ""));
@@ -310,7 +381,7 @@
     if (!pieces.length) return null;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     pieces.forEach((p) => {
-      const dense = densify(PIECES[p.type].samples(), 12);
+      const dense = PIECES[p.type].bridge ? bridgeDense() : densify(PIECES[p.type].samples(), 12);
       dense.forEach((d) => {
         [CFG.W / 2 + 50, -CFG.W / 2].forEach((off) => {
           const o = offset(d, off);
@@ -388,7 +459,7 @@
   // ---- palette -------------------------------------------------------------
 
   function makeIcon(def) {
-    const dense = densify(def.samples(), 7);
+    const dense = def.bridge ? bridgeDense() : densify(def.samples(), 7);
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     dense.forEach((d) => {
       [CFG.W / 2 + (def.station ? 54 : 0), -CFG.W / 2].forEach((off) => {
