@@ -96,24 +96,48 @@
       samples: () => straightSamples(CFG.BRIDGE_LEN),
       bridge: true,
     },
+    switch: {
+      id: "switch",
+      label: "Switch",
+      // One track in, two out. Both outgoing branches share the same entry
+      // point and diverge at the curve's angle — one to the left, one to the
+      // right — so a switch is essentially a left curve and a right curve that
+      // start from the same place. A piece with more than one branch gets one
+      // exit connector per branch (see `localConnectors`).
+      branches: () => [
+        curveSamples(CFG.CURVE_RADIUS, CFG.CURVE_ANGLE, -1),
+        curveSamples(CFG.CURVE_RADIUS, CFG.CURVE_ANGLE, +1),
+      ],
+    },
   };
 
   // The order pieces appear in the palette.
-  Duplo.PIECE_ORDER = ["straight", "curve-left", "curve-right", "station", "bridge"];
+  Duplo.PIECE_ORDER = ["straight", "curve-left", "curve-right", "station", "bridge", "switch"];
+
+  // The branches (centrelines) of a piece. Most pieces have a single branch
+  // described by `samples()`; a switch describes several with `branches()`.
+  Duplo.branches = function (def) {
+    return def.branches ? def.branches() : [def.samples()];
+  };
 
   // ---- connectors ----------------------------------------------------------
 
   // A connector is { x, y, ang } where `ang` is the *open direction*: the way
   // the track would continue if something were attached here. For the entry
   // connector that points back the way the train came (start.dir + 180°); for
-  // the exit connector it points forward (end.dir).
+  // an exit connector it points forward (end.dir).
+  //
+  // Index 0 is always the shared entry (all branches start at the same place).
+  // Each branch then contributes one exit, so a single-branch piece has two
+  // connectors [entry, exit] and a switch has three [entry, exit, exit].
   Duplo.localConnectors = function (def) {
-    const s = def.samples();
-    const a = s[0];
-    const b = s[s.length - 1];
-    return [
-      { x: a.x, y: a.y, ang: a.dir + Math.PI }, // 0: entry
-      { x: b.x, y: b.y, ang: b.dir }, // 1: exit
-    ];
+    const branches = Duplo.branches(def);
+    const a = branches[0][0];
+    const conns = [{ x: a.x, y: a.y, ang: a.dir + Math.PI }]; // 0: entry
+    branches.forEach((s) => {
+      const b = s[s.length - 1];
+      conns.push({ x: b.x, y: b.y, ang: b.dir }); // 1..n: exits
+    });
+    return conns;
   };
 })();

@@ -198,7 +198,7 @@
       drawTrackBody(g, bridgeDense());
       return g;
     }
-    drawTrackBody(g, densify(def.samples(), 7));
+    Duplo.branches(def).forEach((s) => drawTrackBody(g, densify(s, 7)));
     if (def.station) addStation(g, def);
     return g;
   }
@@ -381,13 +381,16 @@
     if (!pieces.length) return null;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     pieces.forEach((p) => {
-      const dense = PIECES[p.type].bridge ? bridgeDense() : densify(PIECES[p.type].samples(), 12);
-      dense.forEach((d) => {
-        [CFG.W / 2 + 50, -CFG.W / 2].forEach((off) => {
-          const o = offset(d, off);
-          const a = tp(p.t, o.x, o.y);
-          minX = Math.min(minX, a.x); minY = Math.min(minY, a.y);
-          maxX = Math.max(maxX, a.x); maxY = Math.max(maxY, a.y);
+      const def = PIECES[p.type];
+      const denses = def.bridge ? [bridgeDense()] : Duplo.branches(def).map((s) => densify(s, 12));
+      denses.forEach((dense) => {
+        dense.forEach((d) => {
+          [CFG.W / 2 + 50, -CFG.W / 2].forEach((off) => {
+            const o = offset(d, off);
+            const a = tp(p.t, o.x, o.y);
+            minX = Math.min(minX, a.x); minY = Math.min(minY, a.y);
+            maxX = Math.max(maxX, a.x); maxY = Math.max(maxY, a.y);
+          });
         });
       });
     });
@@ -459,15 +462,15 @@
   // ---- palette -------------------------------------------------------------
 
   function makeIcon(def) {
-    const dense = def.bridge ? bridgeDense() : densify(def.samples(), 7);
+    const denses = def.bridge ? [bridgeDense()] : Duplo.branches(def).map((s) => densify(s, 7));
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    dense.forEach((d) => {
+    denses.forEach((dense) => dense.forEach((d) => {
       [CFG.W / 2 + (def.station ? 54 : 0), -CFG.W / 2].forEach((off) => {
         const o = offset(d, off);
         minX = Math.min(minX, o.x); minY = Math.min(minY, o.y);
         maxX = Math.max(maxX, o.x); maxY = Math.max(maxY, o.y);
       });
-    });
+    }));
     const pad = 10;
     const icon = el("svg", {
       viewBox: minX - pad + " " + (minY - pad) + " " + (maxX - minX + pad * 2) + " " + (maxY - minY + pad * 2),
